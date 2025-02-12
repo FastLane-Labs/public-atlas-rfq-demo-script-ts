@@ -15,13 +15,15 @@ const metacallCalldata = atlasSdk.getMetacallCalldata(
   bundle.dAppOperation
 );
 
+if (bundle.solverOperations.length > 0) {
+  console.log("solver bid amount:", bundle.solverOperations[0].getField("bidAmount").value);
+}
+
 let gasLimit = bundle.userOperation.getField("gas").value as bigint;
 for (const solverOp of bundle.solverOperations) {
   gasLimit += solverOp.getField("gas").value as bigint;
 }
 gasLimit += BigInt(500_000); // Buffer for metacall validation
-
-console.log("User sending transaction (self bundling)");
 
 const hash = await walletClient.sendTransaction({
   to: atlasAddress as Hex,

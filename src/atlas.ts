@@ -20,7 +20,7 @@ export async function setupAtlas(walletClient: Client): Promise<Bundle> {
 
   const userAddress = walletClient.account?.address as Hex;
 
-  await mintErc20IfNeeded(walletClient);
+  // await mintErc20IfNeeded(walletClient);
 
   // smart wallet doesn't need to approve
   if (walletClient.type == "walletClient") {
@@ -58,8 +58,6 @@ export async function setupAtlas(walletClient: Client): Promise<Bundle> {
 
   console.log("Current block number:", currentBlockNumber);
 
-  console.log("Generating user operation");
-
   let atlasUserOperation = await atlasSdk.newUserOperation({
     from: userAddress,
     value:
@@ -74,10 +72,6 @@ export async function setupAtlas(walletClient: Client): Promise<Bundle> {
     sessionKey: process.env.AUCTIONEER_ADDRESS as string,
     data: swapData,
   });
-
-  console.log("Generated user operation (unsigned)");
-
-  console.log("Sending user operation to FastLane auctioneer");
 
   const bundle = (await atlasSdk.submitUserOperation(atlasUserOperation, [], {
     auctionDurationInMillis: 1500, // Longer duration for the demo

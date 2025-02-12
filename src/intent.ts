@@ -6,8 +6,6 @@ export type SwapIntent = {
 };
 
 export function generateSwapIntent(minAmountUserBuys: bigint): SwapIntent {
-  console.log("Generating swap intent");
-
   const swapIntent: SwapIntent = {
     tokenUserBuys: process.env.USER_BUY_TOKEN_ADDRESS as string,
     minAmountUserBuys: minAmountUserBuys,
@@ -15,6 +13,5 @@ export function generateSwapIntent(minAmountUserBuys: bigint): SwapIntent {
     amountUserSells: BigInt(process.env.USER_SELL_TOKEN_AMOUNT as string),
   };
 
-  console.log("Generated swap intent");
   return swapIntent;
 }
