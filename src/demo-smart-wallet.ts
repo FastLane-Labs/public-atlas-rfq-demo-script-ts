@@ -6,7 +6,7 @@ import {
   publicClient,
   paymasterClient,
 } from "./user";
-import { Hex, encodeFunctionData, zeroAddress } from "viem";
+import { Hex, encodeFunctionData } from "viem";
 import { setupAtlas } from "./atlas";
 
 const bundle = await setupAtlas(bundlerClient);

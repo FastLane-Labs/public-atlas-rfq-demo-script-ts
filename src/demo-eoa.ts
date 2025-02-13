@@ -12,7 +12,7 @@ const atlasAddress = await atlasSdk.getAtlasAddress();
 const metacallCalldata = atlasSdk.getMetacallCalldata(
   bundle.userOperation,
   bundle.solverOperations,
-  bundle.dAppOperation
+  bundle.dAppOperation,
 );
 
 if (bundle.solverOperations.length > 0) {

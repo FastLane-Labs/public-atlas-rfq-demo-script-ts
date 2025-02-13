@@ -4,10 +4,8 @@ import { generateBaseline } from "./baseline";
 import { generateSwapIntent } from "./intent";
 import {
   approveErc20IfNeeded,
-  mintErc20IfNeeded,
-  sendTokensToSolverIfNeeded,
 } from "./helpers";
-import { eoaClient, publicClient } from "./user";
+import { publicClient } from "./user";
 import { Client, encodeFunctionData, Hex, zeroAddress } from "viem";
 
 import rfqControlAbi from "./abi/rfqControl.json";
@@ -19,8 +17,6 @@ export async function setupAtlas(walletClient: Client): Promise<Bundle> {
   console.log("===== SETTING UP DEMO =====");
 
   const userAddress = walletClient.account?.address as Hex;
-
-  // await mintErc20IfNeeded(walletClient);
 
   // smart wallet doesn't need to approve
   if (walletClient.type == "walletClient") {
@@ -41,12 +37,6 @@ export async function setupAtlas(walletClient: Client): Promise<Bundle> {
 
   const swapIntent = generateSwapIntent(minAmountOut);
 
-  await sendTokensToSolverIfNeeded(
-    eoaClient,
-    minAmountOut,
-    process.env.SOLVER_CONTRACT_ADDRESS as string
-  );
-
   const swapData = encodeFunctionData({
     abi: rfqControlAbi,
     functionName: "swap",
@@ -64,7 +54,7 @@ export async function setupAtlas(walletClient: Client): Promise<Bundle> {
       process.env.USER_SELL_TOKEN_ADDRESS == zeroAddress
         ? BigInt(process.env.USER_SELL_TOKEN_AMOUNT as string)
         : BigInt(0),
-    gas: BigInt(300_000), // Hardcoded for demo
+    gas: BigInt(1_000_000), // Hardcoded for demo
     maxFeePerGas: (suggestedFeeData.maxFeePerGas as bigint) * BigInt(2),
     deadline: BigInt(currentBlockNumber + 10),
     dapp: process.env.RFQ_CONTROL_ADDRESS as string,

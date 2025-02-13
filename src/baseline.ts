@@ -2,9 +2,6 @@
 import swapRouterAbi from "./abi/swapRouter.json";
 import pairAbi from "./abi/pair.json";
 import { encodeFunctionData, Client, Hex, zeroAddress, getContract } from "viem";
-import { publicClient } from "./user";
-
-const poolFee = 100n; // pool fee as a bigint
 
 export type BaselineCall = {
   to: string;
@@ -32,7 +29,6 @@ export async function generateBaseline(
 
   const [reserve0, reserve1, blockTimestampLast] = await pairContract.read.getReserves();
   const token0 = await pairContract.read.token0();
-  // const token1 = await pairContract.read.token1();
 
   const reserveIn = token0 === userSellTokenAddress ? reserve0 : reserve1;
   const reserveOut = token0 === userSellTokenAddress ? reserve1 : reserve0;
@@ -44,7 +40,7 @@ export async function generateBaseline(
   });
 
   const minAmountOut = await contract.read.getAmountOut([
-      userSellTokenAddress,
+      userSellTokenAmount,
       reserveIn,
       reserveOut,
   ]) as bigint;
@@ -73,5 +69,3 @@ export async function generateBaseline(
 
   return [baselineCall, minAmountOut];
 }
-
-// generateBaseline(publicClient, "0x0000000000000000000000000000000000000000");
