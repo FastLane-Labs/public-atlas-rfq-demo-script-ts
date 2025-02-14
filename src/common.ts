@@ -1,18 +1,15 @@
 import { ethers } from "ethers";
 import { AtlasSdk, FastlaneBackend } from "@fastlane-labs/atlas-sdk";
-import dotenv from "dotenv";
+import { CHAIN } from "./constants";
 
-dotenv.config();
-
-export const chainId = Number(process.env.CHAIN_ID);
 export const provider = new ethers.JsonRpcProvider(
   process.env.RPC_URL,
-  chainId
+  CHAIN.id
 );
 
 export const atlasSdk = await AtlasSdk.create(
   provider,
-  chainId,
+  CHAIN.id,
   new FastlaneBackend({
     endpoint: process.env.AUCTIONEER_ENDPOINT as string,
   })

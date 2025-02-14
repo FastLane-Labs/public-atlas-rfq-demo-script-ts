@@ -19,19 +19,13 @@ if (bundle.solverOperations.length > 0) {
   console.log("solver bid amount:", bundle.solverOperations[0].getField("bidAmount").value);
 }
 
-let gasLimit = bundle.userOperation.getField("gas").value as bigint;
-for (const solverOp of bundle.solverOperations) {
-  gasLimit += solverOp.getField("gas").value as bigint;
-}
-gasLimit += BigInt(500_000); // Buffer for metacall validation
-
 const hash = await walletClient.sendTransaction({
   to: atlasAddress as Hex,
   value:
     process.env.USER_SELL_TOKEN_ADDRESS == zeroAddress
       ? BigInt(process.env.USER_SELL_TOKEN_AMOUNT as string)
       : BigInt(0),
-  gas: gasLimit,
+  gas: bundle.userOperation.getField("gas").value as bigint,
   maxFeePerGas: bundle.userOperation.getField("maxFeePerGas").value as bigint,
   data: metacallCalldata as Hex,
 });

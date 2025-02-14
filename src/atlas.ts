@@ -1,17 +1,11 @@
 import { Bundle } from "@fastlane-labs/atlas-sdk";
 import { provider, atlasSdk } from "./common";
 import { generateBaseline } from "./baseline";
-import { generateSwapIntent } from "./intent";
-import {
-  approveErc20IfNeeded,
-} from "./helpers";
-import { publicClient } from "./user";
+import { generateSwapIntent } from "./types";
+import { approveErc20IfNeeded } from "./helpers";
 import { Client, encodeFunctionData, Hex, zeroAddress } from "viem";
-
-import rfqControlAbi from "./abi/rfqControl.json";
-import dotenv from "dotenv";
-
-dotenv.config();
+import * as constants from "./constants";
+import { rfqControlAbi } from "./abi/abi";
 
 export async function setupAtlas(walletClient: Client): Promise<Bundle> {
   console.log("===== SETTING UP DEMO =====");
@@ -25,11 +19,10 @@ export async function setupAtlas(walletClient: Client): Promise<Bundle> {
 
   const executionEnvironment = await atlasSdk.getExecutionEnvironment(
     userAddress,
-    process.env.RFQ_CONTROL_ADDRESS as string
+    constants.RFQ_CONTROL_ADDRESS
   );
 
   const [baselineCall, minAmountOut] = await generateBaseline(
-    publicClient,
     executionEnvironment
   );
 
@@ -51,15 +44,15 @@ export async function setupAtlas(walletClient: Client): Promise<Bundle> {
   let atlasUserOperation = await atlasSdk.newUserOperation({
     from: userAddress,
     value:
-      process.env.USER_SELL_TOKEN_ADDRESS == zeroAddress
-        ? BigInt(process.env.USER_SELL_TOKEN_AMOUNT as string)
+      constants.USER_SELL_TOKEN_ADDRESS == zeroAddress
+        ? BigInt(constants.USER_SELL_TOKEN_AMOUNT)
         : BigInt(0),
     gas: BigInt(1_000_000), // Hardcoded for demo
     maxFeePerGas: (suggestedFeeData.maxFeePerGas as bigint) * BigInt(2),
     deadline: BigInt(currentBlockNumber + 10),
-    dapp: process.env.RFQ_CONTROL_ADDRESS as string,
-    control: process.env.RFQ_CONTROL_ADDRESS as string,
-    sessionKey: process.env.AUCTIONEER_ADDRESS as string,
+    dapp: constants.RFQ_CONTROL_ADDRESS,
+    control: constants.RFQ_CONTROL_ADDRESS,
+    sessionKey: constants.AUCTIONEER_ADDRESS,
     data: swapData,
   });
 

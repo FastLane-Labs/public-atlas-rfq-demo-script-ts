@@ -1,51 +1,31 @@
 
-import swapRouterAbi from "./abi/swapRouter.json";
-import pairAbi from "./abi/pair.json";
-import { encodeFunctionData, Client, Hex, zeroAddress, getContract } from "viem";
+import { swapRouterAbi } from "./abi/abi";
+import { encodeFunctionData, zeroAddress } from "viem";
+import * as constants from "./constants";
+import { BaselineCall } from "./types";
+import { swapRouterContract, pairContract } from "./contracts";
 
-export type BaselineCall = {
-  to: string;
-  data: string;
-  value: bigint;
-};
-
-export async function generateBaseline(
-  publicClient: Client, // Pass in your viem public client
+async function generateBaseline(
   recipient: string
 ): Promise<[BaselineCall, bigint]> {
-  let userSellTokenAddress = process.env.USER_SELL_TOKEN_ADDRESS as string;
-  let userBuyTokenAddress = process.env.USER_BUY_TOKEN_ADDRESS as string;
-  let pairAddress = process.env.PAIR_ADDRESS as string;
-  const userSellTokenAmount = BigInt(
-    process.env.USER_SELL_TOKEN_AMOUNT as string
-  );
-  const routerAddress = process.env.ROUTER_ADDRESS as string;
+  const userSellTokenAddress = constants.USER_SELL_TOKEN_ADDRESS;
+  const userBuyTokenAddress = constants.USER_BUY_TOKEN_ADDRESS;
+  const userSellTokenAmount = constants.USER_SELL_TOKEN_AMOUNT;
+  const routerAddress = constants.ROUTER_ADDRESS;
 
-  const pairContract = getContract({
-    address: pairAddress as Hex,
-    abi: pairAbi,
-    client: publicClient,
-  });
-
-  const [reserve0, reserve1, blockTimestampLast] = await pairContract.read.getReserves();
+  const [reserve0, reserve1, blockTimestampLast] = await pairContract.read.getReserves() as [bigint, bigint, bigint];
   const token0 = await pairContract.read.token0();
 
   const reserveIn = token0 === userSellTokenAddress ? reserve0 : reserve1;
   const reserveOut = token0 === userSellTokenAddress ? reserve1 : reserve0;
 
-  const contract = getContract({
-    address: routerAddress as Hex,
-    abi: swapRouterAbi,
-    client: publicClient,
-  });
-
-  const minAmountOut = await contract.read.getAmountOut([
-      userSellTokenAmount,
-      reserveIn,
-      reserveOut,
+  const minAmountOut = await swapRouterContract.read.getAmountOut([
+    userSellTokenAmount,
+    reserveIn,
+    reserveOut,
   ]) as bigint;
 
-  let data = encodeFunctionData({
+  const data = encodeFunctionData({
     abi: swapRouterAbi,
     functionName: "swapExactTokensForTokens",
     args: [
@@ -53,19 +33,20 @@ export async function generateBaseline(
       0n,
       [userSellTokenAddress, userBuyTokenAddress],
       recipient,
-      blockTimestampLast + 10000,
+      BigInt(blockTimestampLast) + 1000n,
     ],
   });
   
-
   const baselineCall: BaselineCall = {
     to: routerAddress,
     data,
     value:
-      process.env.USER_SELL_TOKEN_ADDRESS === zeroAddress
+      userSellTokenAddress === zeroAddress
         ? userSellTokenAmount
         : 0n,
   };
 
   return [baselineCall, minAmountOut];
 }
+
+export { generateBaseline };

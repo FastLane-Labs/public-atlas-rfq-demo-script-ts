@@ -1,60 +1,77 @@
 import { atlasSdk } from "./common";
-import atlasExecutorAbi from "./abi/atlasExecutor.json";
-import {
-  bundlerClient,
-  atlasExecutorAddress,
-  publicClient,
-  paymasterClient,
-} from "./user";
-import { Hex, encodeFunctionData } from "viem";
+import { publicClient, smartAccount } from "./user";
+import { encodeFunctionData, Hex, zeroAddress } from "viem";
 import { setupAtlas } from "./atlas";
+import { addressHub, weth } from "./contracts";
+import { shBundler } from "./bundler";
+import { demoErc20Abi, wethAbi } from "./abi/abi";
+import { Call } from "./types";
+import { paymasterMode } from "./bundler";
+import * as constants from "./constants";
 
-const bundle = await setupAtlas(bundlerClient);
+const smartAccountBalance = await publicClient.getBalance({
+  address: smartAccount.address,
+});
+console.log("smart account address", smartAccount.address);
+console.log("Smart Account MON Balance:", smartAccountBalance);
+
+const wethBalance = await weth.read.balanceOf([smartAccount.address]);
+console.log("WETH Balance:", wethBalance); 
+
+
+const bundle = await setupAtlas(shBundler);
+const atlasAddress = (await atlasSdk.getAtlasAddress()) as Hex;
+
+const wrapData = encodeFunctionData({
+  abi: wethAbi,
+  functionName: "deposit",
+  args: [],
+});
+const wrapCall: Call = {to: constants.WETH_ADDRESS, data: wrapData, value: constants.USER_SELL_TOKEN_AMOUNT};
+
+const approveData = encodeFunctionData({
+  abi: demoErc20Abi,
+  functionName: "approve",
+  args: [atlasAddress, constants.USER_SELL_TOKEN_AMOUNT],
+});
+const approveCall: Call = {to: constants.USER_SELL_TOKEN_ADDRESS, data: approveData, value: BigInt(0)};
+
+const atlasData = atlasSdk.getMetacallCalldata(
+  bundle.userOperation,
+  bundle.solverOperations,
+  bundle.dAppOperation,
+) as Hex;
+
+const atlasCall: Call = {
+  to: atlasAddress,
+  value:
+  constants.USER_SELL_TOKEN_ADDRESS == zeroAddress
+      ? constants.USER_SELL_TOKEN_AMOUNT
+      : BigInt(0),
+  data: atlasData,
+};
 
 if (bundle.solverOperations.length > 0) {
-  const topBidAmount = bundle.solverOperations[0].getField("bidAmount")
-    .value as bigint;
-  const topBidAmountNormalized = topBidAmount;
-  console.log("Best Solver bid amount:", topBidAmountNormalized);
+  console.log("solver bid amount:", bundle.solverOperations[0].getField("bidAmount").value);
 }
-const atlasAddress = await atlasSdk.getAtlasAddress();
 
-const data = encodeFunctionData({
-  abi: atlasExecutorAbi,
-  functionName: "execAtlas",
-  args: [
-    bundle.userOperation.toStruct(),
-    bundle.solverOperations.map((op) => op.toStruct()),
-    bundle.dAppOperation.toStruct(),
-    atlasAddress as Hex,
-    process.env.USER_SELL_TOKEN_ADDRESS as Hex,
-    BigInt(process.env.USER_SELL_TOKEN_AMOUNT as string),
-    process.env.AUCTIONEER_ADDRESS as Hex,
-  ],
+const calls = [wrapCall];
+
+const PAYMASTER = (await addressHub.read.paymaster4337([])) as Hex;
+const hash = await shBundler.sendUserOperation({
+    account: smartAccount,
+    paymaster: PAYMASTER,
+    paymasterData: paymasterMode({mode: "user"}) as Hex,
+    paymasterPostOpGasLimit: 500_000n,
+    paymasterVerificationGasLimit: 500_000n,
+    calls: calls,
+    ...(await shBundler.getUserOperationGasPrice()).fast,
+    // maxFeePerGas: 55000000000n,
+    // maxPriorityFeePerGas: 3000000000n,
 });
 
-let gasLimit = bundle.userOperation.getField("gas").value as bigint;
-for (const solverOp of bundle.solverOperations) {
-  gasLimit += solverOp.getField("gas").value as bigint;
-}
-gasLimit += BigInt(1_000_000); // Buffer for metacall validation
+console.log("User Operation Hash:", hash);
 
-console.log("Smart wallet sending transaction");
+const userOpReceipt = await shBundler.waitForUserOperationReceipt({ hash });
+console.log("User Operation Receipt:", userOpReceipt);
 
-const hash = await bundlerClient.sendTransaction({
-  callGasLimit: gasLimit,
-  maxFeePerGas: bundle.userOperation.getField("maxFeePerGas").value as bigint,
-  maxPriorityFeePerGas: (
-    await paymasterClient.getUserOperationGasPrice()
-  ).fast.maxPriorityFeePerGas,
-  calls: [
-    {
-      to: atlasExecutorAddress,
-      data,
-    },
-  ],
-});
-
-await publicClient.waitForTransactionReceipt({ hash });
-
-console.log("Swapped:", hash);
