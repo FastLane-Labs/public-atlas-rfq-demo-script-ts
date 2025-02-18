@@ -2,6 +2,7 @@ import { Hex, encodeFunctionData, Client, zeroAddress } from "viem";
 import { atlasSdk } from "./common";
 import { publicClient } from "./user";
 import { demoErc20UserIsSelling } from "./contracts";
+import * as constants from "./constants";
 
 export async function approveErc20IfNeeded(client: Client) {
   if (process.env.USER_SELL_TOKEN_ADDRESS === zeroAddress) {
@@ -16,7 +17,7 @@ export async function approveErc20IfNeeded(client: Client) {
     atlasAddress,
   ]) as bigint;
 
-  if (allowance >= BigInt(process.env.USER_SELL_TOKEN_AMOUNT!)) {
+  if (allowance >= constants.USER_SELL_TOKEN_AMOUNT) {
     console.log("User already has enough allowance, skipping approval");
     return;
   }
@@ -26,7 +27,7 @@ export async function approveErc20IfNeeded(client: Client) {
   const data = encodeFunctionData({
     abi: demoErc20UserIsSelling.abi,
     functionName: "approve",
-    args: [atlasAddress, BigInt(process.env.USER_SELL_TOKEN_AMOUNT as string)],
+    args: [atlasAddress, constants.USER_SELL_TOKEN_AMOUNT],
   });
 
   const hash = await client.sendTransaction({

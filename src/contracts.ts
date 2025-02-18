@@ -1,6 +1,6 @@
 import { publicClient, smartAccount } from "./user";
 import { Hex, getContract } from "viem";
-import { addressHubAbi, wethAbi, demoErc20Abi, pairAbi, swapRouterAbi } from "./abi/abi";
+import { addressHubAbi, wethAbi, demoErc20Abi, pairAbi, swapRouterAbi, shMonadAbi, paymasterAbi } from "./abi/abi";
 import * as constants from "./constants";
 
 const addressHub = getContract({
@@ -11,6 +11,24 @@ const addressHub = getContract({
       account: smartAccount,
     },
   });
+
+const shMonadContract = getContract({
+  address: (await addressHub.read.shMonad([])) as Hex,
+  abi: shMonadAbi,
+  client: {
+    public: publicClient,
+    account: smartAccount,
+  },
+});
+
+const paymasterContract = getContract({
+  address: (await addressHub.read.paymaster4337([])) as Hex,
+  abi: paymasterAbi,
+  client: {
+    public: publicClient,
+    account: smartAccount,
+  },
+});
 
 
 const weth = getContract({
@@ -53,4 +71,4 @@ const swapRouterContract = getContract({
 });
 
 
-export { addressHub, weth, demoErc20UserIsSelling, demoErc20UserIsBuying, pairContract, swapRouterContract };
+export { addressHub, weth, demoErc20UserIsSelling, demoErc20UserIsBuying, pairContract, swapRouterContract, shMonadContract, paymasterContract };
