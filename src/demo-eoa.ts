@@ -25,7 +25,7 @@ const hash = await walletClient.sendTransaction({
     process.env.USER_SELL_TOKEN_ADDRESS == zeroAddress
       ? BigInt(process.env.USER_SELL_TOKEN_AMOUNT as string)
       : BigInt(0),
-  gas: bundle.userOperation.getField("gas").value as bigint,
+  gas: 500000n,
   maxFeePerGas: bundle.userOperation.getField("maxFeePerGas").value as bigint,
   data: metacallCalldata as Hex,
 });

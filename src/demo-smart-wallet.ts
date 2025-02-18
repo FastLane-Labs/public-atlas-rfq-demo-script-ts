@@ -71,7 +71,7 @@ if (bundle.solverOperations.length > 0) {
   console.log("solver bid amount:", bundle.solverOperations[0].getField("bidAmount").value);
 }
 
-const calls = [atlasCall];
+const calls = [wrapCall, approveCall, atlasCall];
 
 const PAYMASTER = (await addressHub.read.paymaster4337([])) as Hex;
 const hash = await shBundler.sendUserOperation({
@@ -81,14 +81,10 @@ const hash = await shBundler.sendUserOperation({
     paymasterPostOpGasLimit: 500_000n,
     paymasterVerificationGasLimit: 500_000n,
     calls: calls,
-    ...(await shBundler.getUserOperationGasPrice()).fast,
-    // callGasLimit: 500_000n,
-    // preVerificationGas: 500_000n,
-    // verificationGasLimit: 500_000n,
+    ...(await shBundler.getUserOperationGasPrice()).slow,
 });
 
 console.log("User Operation Hash:", hash);
 
 const userOpReceipt = await shBundler.waitForUserOperationReceipt({ hash });
 console.log("User Operation Receipt:", userOpReceipt);
-

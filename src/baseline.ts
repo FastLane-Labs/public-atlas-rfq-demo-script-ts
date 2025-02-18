@@ -30,7 +30,7 @@ async function generateBaseline(
     functionName: "swapExactTokensForTokens",
     args: [
       userSellTokenAmount,
-      0n,
+      minAmountOut,
       [userSellTokenAddress, userBuyTokenAddress],
       recipient,
       BigInt(blockTimestampLast) + 1000n,

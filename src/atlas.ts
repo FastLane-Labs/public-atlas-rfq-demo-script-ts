@@ -49,7 +49,7 @@ export async function setupAtlas(walletClient: Client): Promise<Bundle> {
         : BigInt(0),
     gas: BigInt(1_000_000), // Hardcoded for demo
     maxFeePerGas: (suggestedFeeData.maxFeePerGas as bigint) * BigInt(2),
-    deadline: BigInt(currentBlockNumber + 10),
+    deadline: BigInt(currentBlockNumber + 100), // need big deadline because fast block times
     dapp: constants.RFQ_CONTROL_ADDRESS,
     control: constants.RFQ_CONTROL_ADDRESS,
     sessionKey: constants.AUCTIONEER_ADDRESS,
@@ -59,7 +59,7 @@ export async function setupAtlas(walletClient: Client): Promise<Bundle> {
   const bundle = (await atlasSdk.submitUserOperation(atlasUserOperation, [], {
     auctionDurationInMillis: 1500, // Longer duration for the demo
     disableBundling: true, // Disable Atlas bundler, we bundle ourselves
-    // disableSimulations: true,
+    disableSimulations: true,
   })) as Bundle;
 
   console.log("Atlas bundle received");

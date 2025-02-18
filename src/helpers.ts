@@ -18,7 +18,7 @@ export async function approveErc20IfNeeded(client: Client) {
   ]) as bigint;
 
   if (allowance >= constants.USER_SELL_TOKEN_AMOUNT) {
-    console.log("User already has enough allowance, skipping approval");
+    console.log("User already has enough allowance, skipping approval, ", allowance);
     return;
   }
 
