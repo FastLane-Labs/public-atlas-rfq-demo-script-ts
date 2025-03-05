@@ -15,7 +15,7 @@ const smartAccountBalance = await publicClient.getBalance({
 console.log("smart account address", smartAccount.address);
 console.log("Smart Account MON Balance:", smartAccountBalance);
 
-const policyId = (await paymasterContract.read.policyID([])) as bigint;
+const policyId = (await paymasterContract.read.POLICY_ID([])) as bigint;
 
 const smartAccountBondedAmount = (await shMonadContract.read.balanceOfBonded([
   policyId,

@@ -1,7 +1,15 @@
-import { createPublicClient, createWalletClient, http } from "viem";
+import { createPublicClient, createWalletClient, custom, http } from "viem";
 import { entryPoint07Address } from "viem/account-abstraction";
-import { toSafeSmartAccount } from "permissionless/accounts";
+import { toSafeSmartAccount, toSimpleSmartAccount } from "permissionless/accounts";
 import * as constants from "./constants";
+import { ConnectedWallet, useWallets } from "@privy-io/react-auth";
+
+ 
+// const { wallets } = useWallets();
+// const embeddedWallet = wallets.find(
+//   (wallet) => wallet.walletClientType === "privy"
+// ) as ConnectedWallet;
+// console.log(embeddedWallet);
 
 
 export const eoaClient = createWalletClient({
@@ -31,5 +39,30 @@ export const smartAccount = await toSafeSmartAccount({
   multiSendAddress: constants.MULTI_SEND_ADDRESS,
   multiSendCallOnlyAddress: constants.MULTI_SEND_CALL_ONLY_ADDRESS,
 });
+
+// const owner = await embeddedWallet.getEthereumProvider();
+
+// console.log(owner);
+
+// if (!owner) {
+//   throw new Error("No owner found")
+// }
+
+// const simpleSmartAccount = await toSimpleSmartAccount({
+//   owner,
+//   client: publicClient,
+//   entryPoint: {
+//     address: entryPoint07Address,
+//     version: "0.7"
+//   }
+
+// })
+
+// const simpleSmartAccountClient = createSmartAccountClient({
+//   account: simpleSmartAccount,
+//   chain: constants.CHAIN,
+//   bundlerTransport: http(constants.SHBUNDLER_URL),
+// })
+
 
 

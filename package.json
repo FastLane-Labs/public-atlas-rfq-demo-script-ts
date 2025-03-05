@@ -14,5 +14,8 @@
     "demo-smart-wallet": "tsx ./src/demo-smart-wallet.ts",
     "build": "tsc"
   },
-  "type": "module"
+  "type": "module",
+  "dependencies": {
+    "@privy-io/react-auth": "^2.4.5"
+  }
 }
